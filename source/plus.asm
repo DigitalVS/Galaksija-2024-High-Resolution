@@ -783,10 +783,10 @@ E388:
 ; Interrupt routine called from ROM A to generate high resolution image
 HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beginning of the routine at 0x38
         ; Check for the incoming serial data. This is the side job for this routine.
-	      LD	 HL, RXFLAG	     ; 10
-	      LD	 A, (0x203A)     ; 13 RX signal is here in bit 0
-	      AND	 (HL)		         ; 7
-	      LD	 (HL), A	       ; 7  clr bit 0 if serial signal was present
+        LD	 HL, RXFLAG      ; 10
+        LD	 A, (0x203A)     ; 13 RX signal is here in bit 0
+        AND	 (HL)            ; 7
+        LD	 (HL), A         ; 7  clr bit 0 if serial signal was present
         ; High resolution driver starts here
         EXX                  ; 4 Alternate registers
         PUSH BC              ; 11
@@ -817,7 +817,7 @@ HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beg
         LD   E, A
         INC  HL              ; 6 HL = RAMTOP+31
         LD   C, (HL)         ; 7 C = image start address higher byte
-        LD   HL, $203F       ; Latch address
+        LD   HL, $203F       ; 10 Latch address
 .Lines:                      ; Line drawing main loop
         LD   A, C            ; 4
         LD   (HL), $3C       ; 10 $3C = 00111100, select one of character generator black lines, turn-off graphics mode flip-flop
@@ -864,7 +864,7 @@ HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beg
         POP  DE
         POP  BC
         EXX                  ; Main registers
-        JP   save13by        ; Continue to RTC routine in ROM A (save13by address is $A8D6 in ROM V42)
+        JP   save13by        ; Continue to RTC routine in ROM (save13by address is $A8D6 in ROM V42)
 
 E46A:
         RST  $8              ; take first parameter

@@ -8,15 +8,15 @@ This documentation is still __work in progress__!
 
 Hardware of the High Resolution expansion is extremely simple. It consists of only one flip-flop which switches from character based mode to graphics mode and vice versa. This flip-flop extends Galaksija's, so called, *latch* circuit from six to seven bits and is handled exclusively by Galaksija's graphics raster generation service routine.
 
-Output of the flip-flop is connected to the character's generator A12 line. This means that high resolution image goes through character generator EPROM, which is bit unusual, but is possible because this EPROM chip has greater then needed capacity and has all eight data bus lines connected to EPROM address lines. Each of the 256 possible data bus values addresses one EPROM cell where that same value has been stored. Thus, character generator is used to transfer any data bus value to the shift register connected to its output data lines.
+Output of the flip-flop is connected to the character's generator A12 line. This means that high resolution image goes through character generator EPROM, which is bit unusual, but is possible because this EPROM chip has greater then needed capacity and all eight data bus lines are connected to EPROM address lines. Each of the 256 possible data bus values addresses single EPROM cell where that same value has been stored. Thus, character generator is used to transfer any data bus value to the shift register connected to its output data lines.
 
-Fact that high resolution image data goes through character generator means that character generator chip has to be replaced or reprogrammed before using new high resolution capabilities. Note that if reprogrammed, chip does not have to be erased before reprogramming - new contents can be reprogrammed with old contents left in the chip, because new contents is added while old is unchanged and will not be altered.
+Case that high resolution image data goes through character generator means that character generator chip has to be replaced or reprogrammed before using new high resolution capabilities. Note that if reprogrammed, chip does not need to be erased before reprogramming - new contents can be reprogrammed with old contents left in the chip, because new contents is added while old is unchanged and will not be altered.
 
 Folder *hardware* contains Gerber files, schematics, BOM list and character generator binary file needed for making high resolution expansion.
 
 ### Installation Procedure
 
-The flip-flop is soldered to small PCB which plugs into the character generator socket (U4 on the Galaksija 2024 schematics) and character generator chip is then plugged to this PCB. Additionally, one of necessary signals, not available at character generator socket, has to be brought to the marked solder pad by short wire. This signal is CLK signal from neighboring 74HCT174 chip (U18, pin number 9).
+The flip-flop is soldered to small PCB which plugs into the character generator socket (U4 on the Galaksija 2024 schematics) and character generator chip is then plugged to this PCB. Additionally, one of necessary signals, not available at character generator socket, has to be brought to the marked solder pad by short wire. This signal is CLK signal from neighboring 74HCT174 chip (U6, pin number 9).
 
 ROM chip, usually labeled as *BASIC*, has to be changed or reprogrammed with new software as well.
 
@@ -24,19 +24,19 @@ ROM chip, usually labeled as *BASIC*, has to be changed or reprogrammed with new
 
 Software consists of screen editor and eighteen BASIC commands. Syntax of the commands is the same as on Galaksija Plus. Screen editor itself and number of new commands are not related to high resolution functionality, and work in text mode as well. This makes this project more general then just adding high resolution features and it can be also called the __Galaksija 2024 Plus__ project though.
 
-Source code is published in __plus.asm__ file. This file is supposed to be assembled together with the rest of the sources for Galaksija 2024, but these other files are not published here. Only resulting binary ROM file is published in release section of this repository.
+Source code is published in __plus.asm__ file. This file is supposed to be assembled together with the rest of the sources for Galaksija 2024 ROM, but these other files are not published here. Only resulting binary ROM file is published in release section of this repository.
 
 After the Galaksija's startup, computer is booted in its main text mode and, therefore, high resolution and other new capabilities are not yet available. New features are available only after the initialization with command `A=USR(&E000)`.
 
 ### Screen Editor
 
-Screen editor is the same Galaksija Plus editor with few small fixes. It works only in overwrite mode, which is unusual by modern standards, but expected considering how few keys the keyboard has (e.g. no backspace nor control keys).
+Screen editor is the same Galaksija Plus editor with few small fixes. It works only in overwrite mode, which is unusual by modern standards, but expected considering how few keys the keyboard has (e.g. no backspace, home and control keys).
 
-Characters in front of the cursor are deleting with DEL key, and space for new characters are creating with SHIFT + "-" key combination.
+Characters after of the cursor are deleted with DEL key, and space for new characters is created with SHIFT + "-" key combination.
 
 ### BASIC Commands
 
-New BASIC commands, including unofficial command R2, are: GRAPH, TEXT, DRAW, UNDRAW, PLOT, UNPLOT, FILL, SOUND, LINE, FAST, SLOW, CLEAR, KILL, DESTROY, AUTO, UP, DOWN, R2.
+New BASIC commands, including unofficial command R2, are: GRAPH, TEXT, PLOT, UNPLOT, DRAW, UNDRAW, FILL, SOUND, LINE, FAST, SLOW, CLEAR, KILL, DESTROY, AUTO, UP, DOWN, R2.
 
 Graphics commands work with graphics coordinates, where (0,0) point is in lower-left corner, and (255,207) is in upper-right corner. The coordinate value is kept within visible area by calculating value further by modulo 256. Vertical coordinate values from 208 to 255 are equal to value 0. Vertical resolution is adjustable from 49 to 208 lines with LINE command.
 
@@ -98,9 +98,9 @@ This is unofficial command which de-initializes high resolution mode and all oth
 
 There is a well known issue with Galaksija 2024 picture which is even more visible in graphics mode in which this expansion works.
 
-This issue is manifested in text mode as ghost pixels for characters wider then 6 pixels. For example, two asterisk characters placed by each other are displayed as joined in the middle, even there should be one pixel wide gap between them. In graphics mode this is much more obvious, and seen as, at every eight pixels, first column displayed twice and eighth column not displayed at all.
+This issue is manifested in text mode as ghost pixels for characters wider then 6 pixels. For example, two asterisk characters placed side by side are displayed as joined in the middle, even there should be one pixel wide gap between them. In graphics mode this is much more obvious, and seen as, at every eight horizontal pixels, first column displayed twice and eighth column not displayed at all.
 
-Fortunately, solution is simple by soldering small ceramic capacitor with capacitance of 470 pF between pin 9 and ground (pin 7) of chip 74HCT74 (U18) on Galaksija 2024 main PCB. It is easiest to solder it underneath of the 74HCT74 on the other side of the board. If you wish, you can first try smaller capacitor values if they fix the problem, for example, 330 or 390 pF, because required value can slightly vary with manufacturer of ICs used on each single Galaksija.
+Fortunately, solution is simple, by soldering small ceramic capacitor with capacitance of 470 pF between pin 9 and ground (pin 7) of chip 74HCT74 (U18) on Galaksija 2024 main PCB. It is easiest to solder it underneath of the 74HCT74 on the other side of the board. If you wish, you can first try smaller capacitor values if it fixes the problem, for example, 330 or 390 pF, because required value may slightly vary with manufacturer and family of ICs used on each single instance of Galaksija.
 
 The MIT License (MIT)
 
