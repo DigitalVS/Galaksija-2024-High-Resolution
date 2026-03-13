@@ -143,7 +143,7 @@ CALL $E161    ; Plot/unplot subroutine call
 
 Passing line drawing parameters is a bit different then for plot operation. X and Y coordinates are passed in BC register pair. Draw or undraw operation is determined by state of Z flag, similarly as for plot, but this time it needs to be passed via the stack.
 
-Draw subroutine is at address &E104. After it finishes, arithmetic stack state have to restored.
+Draw subroutine is at address &E104. After it finishes, arithmetic stack state have to be restored.
 
 ```z80
 LD   BC, $64C8        ; Line end coordinates: Y = 100, X = 200
@@ -162,35 +162,35 @@ Here is a complete example which summarizes all above tips at one place.
 
 ```z80
 ; Galaksija variables
-TEXTHORPOS      = $2BA8 ; Horizontal text position, also determines text or graphics mode of operation
-ARITHMACC       = $2AAC ; FP arithmetic accumulator/stack
+TEXTHORPOS   = $2BA8 ; Horizontal text position, also determines text or graphics mode of operation
+ARITHMACC    = $2AAC ; FP arithmetic accumulator/stack
 
-; High resolution routines
-InitGraphics    = $E055
-Plot            = $E161
-DrawLine        = $E104
+; High resolution subroutines
+InitGraphics = $E055
+Plot         = $E161
+DrawLine     = $E104
 
-        ORG $3000
+    ORG $3000
 
 Start:
-        LD   A, 255           ; Set graphic mode indicator = 255
-        LD   (TEXTHORPOS), A
-        CALL InitGraphics     ; Initialize graphics mode if not already initialized
-        LD   A, $0C           ; Form feed character
-        RST  $20              ; Clear the screen
+    LD   A, 255           ; Set graphic mode indicator = 255
+    LD   (TEXTHORPOS), A
+    CALL InitGraphics     ; Initialize graphics mode if not already initialized
+    LD   A, $0C           ; Form feed character
+    RST  $20              ; Clear the screen
 
-        LD   HL, $3264        ; Plot coordinates: Y = 50, X = 100
-        PUSH HL               ; Y, X parameters are passed via stack
-        XOR  A                ; PLOT: A = 0, Zf = 1, UNPLOT: A <> 0, Zf = 0
-        CALL Plot             ; Plot/unplot subroutine call
+    LD   HL, $3264        ; Plot coordinates: Y = 50, X = 100
+    PUSH HL               ; Y, X parameters are passed via stack
+    XOR  A                ; PLOT: A = 0, Zf = 1, UNPLOT: A <> 0, Zf = 0
+    CALL Plot             ; Plot/unplot subroutine call
 
-        LD   BC, $64C8        ; Y = 100, X = 200
-        XOR  A                ; DRAW: A = 0, Zf = 1, UNDRAW: A <> 0, Zf = 0
-        PUSH AF
-        CALL DrawLine         ; Draw/undraw subroutine call
-        LD   IX, ARITHMACC    ; Restore FP stack pointer changed in DRAW subroutine
-        POP  AF               ; Clear the stack
-        RET
+    LD   BC, $64C8        ; Y = 100, X = 200
+    XOR  A                ; DRAW: A = 0, Zf = 1, UNDRAW: A <> 0, Zf = 0
+    PUSH AF
+    CALL DrawLine         ; Draw/undraw subroutine call
+    LD   IX, ARITHMACC    ; Restore FP stack pointer changed in DRAW subroutine
+    POP  AF               ; Clear the stack
+    RET
 ```
 
 ## Troubleshooting
