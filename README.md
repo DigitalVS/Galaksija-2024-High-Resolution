@@ -22,7 +22,7 @@ ROM chip, usually labeled as *BASIC*, has to be changed or reprogrammed with new
 
 ## New ROM Software
 
-Software consists of screen editor and eighteen BASIC commands. Syntax of the commands is the same as on Galaksija Plus. Screen editor itself and number of new commands are not related to high resolution functionality, and work in text mode as well. This makes this project more general then just adding high resolution features and it can be also called the __Galaksija 2024 Plus__ project though.
+Software consists of screen editor and eighteen BASIC commands. Syntax of the commands is the same as on Galaksija Plus. Screen editor itself and a number of new commands are not related to high resolution functionality, and work in text mode as well. This makes this project more general then just adding high resolution features and it can be also called the __Galaksija 2024 Plus__ project though.
 
 Source code is published in __plus.asm__ file. This file is supposed to be assembled together with the rest of the sources for Galaksija 2024 ROM, but these other files are not published here. Only resulting binary ROM file is published in release section of this repository.
 
@@ -32,7 +32,7 @@ After the Galaksija's startup, computer is booted in its main text mode and, the
 
 Screen editor is the same Galaksija Plus editor with few small fixes. It works only in overwrite mode, which is unusual by modern standards, but expected considering how few keys the keyboard has (e.g. no backspace, home and control keys).
 
-Characters after of the cursor are deleted with DEL key, and space for new characters is created with SHIFT + "-" key combination.
+Characters after the cursor are deleted with DEL key, and space for new characters is created with SHIFT + "-" key combination.
 
 ### BASIC Commands
 
@@ -93,6 +93,105 @@ Command `DESTROY n,m` will clear the memory from address *n* to address *m*, set
 #### R2
 
 This is unofficial command which de-initializes high resolution mode and all other Plus features and puts Galaksija in its main text mode of operation. Basically its effect is the same as a computer reset, except that RAM contents is preserved.
+
+## High Resolution Software Development Tips
+
+BASIC commands described in previous text are easy to use but, due to Galaksija's inherent slowness, more complex programs are only possible to make in a machine language. Thus, here will be listed few tips about assembly program development. This is not meant to be comprehensive tutorial, nor the only correct way to do certain things, it is meant to be just a brief help to kick-off with writing first Galaksija high resolution programs.
+
+### ROM Initialization
+
+As already mentioned, initialization is done with command `A=USR(&E000)`. Leave this step to the user. It has to be done once and only once, after every computer startup or reset. If needed, put in documentation for your application that user have to do this prior to starting the program. Otherwise, if this step is executed multiple times (manually and/or programmatically), you will experience loosing the RAM memory, because RAMTOP will be lowered multiple times, too.
+
+### Switching to Graphics Mode
+
+This is the first step that should be done programmatically. Graphic mode is determined by contents of *horizontal text position* variable at address &2BA8. Store in this location value &FF for graphics mode, and value &16 for text mode of operation.
+
+This step and the next step (RAM initialization), may be executed with disabled interrupts but seems that it's not strictly necessary.
+
+### RAM Initialization
+
+This step allocates high resolution graphics RAM memory and sets some internal variable values. It is done by executing `CALL &E055` instruction and is allowed to be executed multiple times (memory will not be reserved multiple times unless ROM initialization step is repeated, which would overwrite some internal variable values). Thus, this step should be executed as part of every program initialization.
+
+### Clearing the Graphics RAM
+
+Complete RAM memory is initially filled with zeros and previously listed initialization steps do not alter its contents. That means that whole working area of 256 x 208 pixels would be initially displayed in white color, even if it is expected to be black. To avoid this, after graphics RAM memory allocation, this memory is cleared (all bytes set to &FF).
+
+However, all characters put on a character screen with `RST &20` are via video link copied to the same location on a graphics screen. This means that whenever program starts, graphics memory is not in cleared state and that it should be explicitly cleared.
+
+Graphics memory can be cleared in two ways. First, all 6.5 kilobytes can be set to &FF in a loop. This is probably fastest, but not the shortest way to clear graphics memory. Shorter way to clear the graphics memory is to clear the character video memory and leave the video link routine to clear the graphics memory itself. This can be done with only two instructions:
+
+```z80
+LD   A, $0C     ; Form feed character
+RST  $20
+```
+
+### Plot a Dot
+
+Authors of plot and line drawing ROM routines didn't pay too much attention to how that code would be used from application software. However, it's not that difficult to use it
+from other programs.
+
+Put Y plot coordinate to H register and X coordinate to L register, then push HL register to the stack. Set Z flag (by clearing A register) for choosing Plot operation. Finally, call plot ROM subroute at address &E161, as shown by the next code example.
+
+```z80
+LD HL, $3264  ; Plot coordinates: Y = 50, X = 100
+PUSH HL       ; Y, X parameters are passed via stack
+XOR A         ; A = 0, Zf = 1 flag for PLOT, A <> 0, Zf = 0 for UNPLOT
+CALL $E161    ; Plot/unplot subroutine call
+```
+
+### Line Drawing
+
+Passing line drawing parameters is a bit different then for plot operation. X and Y coordinates are passed in BC register pair. Draw or undraw operation is determined by state of Z flag, similarly as for plot, but this time it needs to be passed via the stack.
+
+Draw subroutine is at address &E104. After it finishes, arithmetic stack state have to restored.
+
+```z80
+LD   BC, $64C8        ; Line end coordinates: Y = 100, X = 200
+XOR  A                ; DRAW: A = 0, Zf = 1, UNDRAW: A <> 0, Zf = 0
+PUSH AF
+CALL $E104            ; Draw/undraw subroutine call
+LD   IX, ARITHMACC    ; Restore FP stack pointer changed in DRAW subroutine
+POP  AF               ; Clear the stack
+```
+
+> Drawing vertical and especially horizontal lines executes much faster by directly writing to graphics memory than using ROM drawing routines.
+
+### Program Example
+
+Here is a complete example which summarizes all above tips at one place.
+
+```z80
+; Galaksija variables
+TEXTHORPOS      = $2BA8 ; Horizontal text position, also determines text or graphics mode of operation
+ARITHMACC       = $2AAC ; FP arithmetic accumulator/stack
+
+; High resolution routines
+InitGraphics    = $E055
+Plot            = $E161
+DrawLine        = $E104
+
+        ORG $3000
+
+Start:
+        LD   A, 255           ; Set graphic mode indicator = 255
+        LD   (TEXTHORPOS), A
+        CALL InitGraphics     ; Initialize graphics mode if not already initialized
+        LD   A, $0C           ; Form feed character
+        RST  $20              ; Clear the screen
+
+        LD   HL, $3264        ; Plot coordinates: Y = 50, X = 100
+        PUSH HL               ; Y, X parameters are passed via stack
+        XOR  A                ; PLOT: A = 0, Zf = 1, UNPLOT: A <> 0, Zf = 0
+        CALL Plot             ; Plot/unplot subroutine call
+
+        LD   BC, $64C8        ; Y = 100, X = 200
+        XOR  A                ; DRAW: A = 0, Zf = 1, UNDRAW: A <> 0, Zf = 0
+        PUSH AF
+        CALL DrawLine         ; Draw/undraw subroutine call
+        LD   IX, ARITHMACC    ; Restore FP stack pointer changed in DRAW subroutine
+        POP  AF               ; Clear the stack
+        RET
+```
 
 ## Troubleshooting
 
