@@ -22,7 +22,7 @@ The flip-flop is soldered to small PCB which plugs into the character generator 
 
 The following picture shows pins that need to be connected marked with red squares. It is easiest to connect wire to 74HCT174 pin 9 by soldering it on bottom side of the PCB.
 
-<img src="./images/Connecting_CLK_signal.jpg" width="480" alt="Bottom side of high resolution PCB">
+<img src="./images/Connecting_CLK_Signal.jpg" width="480" alt="Pins to connect">
 
 ROM chip, usually labeled as *BASIC*, has to be changed or reprogrammed with new software as well.
 
