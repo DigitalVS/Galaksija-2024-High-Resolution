@@ -1,12 +1,14 @@
 # Galaksija 2024 High Resolution
 
-This is the high resolution expansion project for [Galaksija](https://en.wikipedia.org/wiki/Galaksija_(computer)) 2024 retro computer, which is in its original form limited to text (character) screen display. It is a hardware and software expansion of the Galaksija 2024 computer to achieve graphics resolution of 256 x 208 pixels. Software part of the project is mostly port of Galaksija Plus ROM C to newer Galaksija 2024 and it has high level of compatibility with Galaksija Plus.
+This is the high resolution expansion project for [Galaksija](https://en.wikipedia.org/wiki/Galaksija_(computer)) 2024 retro computer, which is in its original form limited to character screen display. It is a hardware and software expansion of the Galaksija 2024 computer to achieve graphics resolution of 256 x 208 pixels. Software part of the project is mostly port of Galaksija Plus ROM C to newer Galaksija 2024 and it has high level of compatibility with Galaksija Plus.
 
 This documentation is still __work in progress__!
 
 ## Hardware Description
 
 Hardware of the High Resolution expansion is extremely simple. It consists of only one flip-flop which switches from character based mode to graphics mode and vice versa. This flip-flop extends Galaksija's, so called, *latch* circuit from six to seven bits and is handled exclusively by Galaksija's graphics raster generation service routine.
+
+<img src="./images/G2024_HiRes_Bottom.jpg" width="480" alt="Bottom side of high resolution PCB">
 
 Output of the flip-flop is connected to the character's generator A12 line. This means that high resolution image goes through character generator EPROM, which is bit unusual, but is possible because this EPROM chip has greater then needed capacity and all eight data bus lines are connected to EPROM address lines. Each of the 256 possible data bus values addresses single EPROM cell where that same value has been stored. Thus, character generator is used to transfer any data bus value to the shift register connected to its output data lines.
 
@@ -17,6 +19,10 @@ Folder *hardware* contains Gerber files, schematics, BOM list and character gene
 ### Installation Procedure
 
 The flip-flop is soldered to small PCB which plugs into the character generator socket (U4 on the Galaksija 2024 schematics) and character generator chip is then plugged to this PCB. Additionally, one of necessary signals, not available at character generator socket, has to be brought to the marked solder pad by short wire. This signal is CLK signal from neighboring 74HCT174 chip (U6, pin number 9).
+
+The following picture shows pins that need to be connected marked with red squares. It is easiest to connect wire to 74HCT174 pin 9 by soldering it on bottom side of the PCB.
+
+<img src="./images/Connecting_CLK_signal.jpg" width="480" alt="Bottom side of high resolution PCB">
 
 ROM chip, usually labeled as *BASIC*, has to be changed or reprogrammed with new software as well.
 
@@ -104,17 +110,17 @@ As already mentioned, initialization is done with command `A=USR(&E000)`. Leave 
 
 ### Switching to Graphics Mode
 
-This is the first step that should be done programmatically. Graphic mode is determined by contents of *horizontal text position* variable at address &2BA8. Store in this location value &FF for graphics mode, and value &16 for text mode of operation.
+This is the first step that should be done programmatically. Graphic mode is determined by contents of *horizontal text position* variable at address &2BA8. Store in this location value &FF for graphics mode or value &16 for text mode of operation.
 
 This step and the next step (RAM initialization), may be executed with disabled interrupts but seems that it's not strictly necessary.
 
 ### RAM Initialization
 
-This step allocates high resolution graphics RAM memory and sets some internal variable values. It is done by executing `CALL &E055` instruction and is allowed to be executed multiple times (memory will not be reserved multiple times unless ROM initialization step is repeated, which would overwrite some internal variable values). Thus, this step should be executed as part of every program initialization.
+This step allocates high resolution graphics RAM memory and sets some internal variable values. It is done by executing `CALL &E055` instruction and is allowed to be executed multiple times (memory will not be reserved multiple times unless ROM initialization step is repeated, which would overwrite some internal variable values). Thus, this step should be part of each program initialization.
 
 ### Clearing the Graphics RAM
 
-Complete RAM memory is initially filled with zeros and previously listed initialization steps do not alter its contents. That means that whole working area of 256 x 208 pixels would be initially displayed in white color, even if it is expected to be black. To avoid this, after graphics RAM memory allocation, this memory is cleared (all bytes set to &FF).
+Complete RAM memory is initially filled with zeros and previously listed initialization steps do not alter its contents. That means that whole working area of 256 x 208 pixels would be initially displayed in white color, even if it is expected to be black. To avoid this, after graphics memory allocation,  memory is cleared by setting all bytes to value &FF.
 
 However, all characters put on a character screen with `RST &20` are via video link copied to the same location on a graphics screen. This means that whenever program starts, graphics memory is not in cleared state and that it should be explicitly cleared.
 
@@ -127,10 +133,9 @@ RST  $20
 
 ### Plot a Dot
 
-Authors of plot and line drawing ROM routines didn't pay too much attention to how that code would be used from application software. However, it's not that difficult to use it
-from other programs.
+Authors of plot and line drawing ROM routines didn't pay too much attention to how that code would be used from application software. Nevertheless, it's not that difficult to use it from other programs.
 
-Put Y plot coordinate to H register and X coordinate to L register, then push HL register to the stack. Set Z flag (by clearing A register) for choosing Plot operation. Finally, call plot ROM subroute at address &E161, as shown by the next code example.
+Put Y plot coordinate to H register and X coordinate to L register (or use BC or DE registers instead), then push HL register to the stack. Set Z flag by clearing A register for choosing Plot operation. Finally, call plot ROM subroute at address &E161, as shown by the next code example.
 
 ```z80
 LD HL, $3264  ; Plot coordinates: Y = 50, X = 100
@@ -160,6 +165,8 @@ POP  AF               ; Clear the stack
 
 Here is a complete example which summarizes all above tips at one place.
 
+It turns-on and initializes graphics mode, and clears the screen afterwards. Then it draws one point at coordinates (100, 50) and, finally, draws a line from that point to coordinates (200, 100).
+
 ```z80
 ; Galaksija variables
 TEXTHORPOS   = $2BA8 ; Horizontal text position, also determines text or graphics mode of operation
@@ -173,7 +180,7 @@ DrawLine     = $E104
     ORG $3000
 
 Start:
-    LD   A, 255           ; Set graphic mode indicator = 255
+    LD   A, 255           ; Set graphics mode indicator = 255
     LD   (TEXTHORPOS), A
     CALL InitGraphics     ; Initialize graphics mode if not already initialized
     LD   A, $0C           ; Form feed character
@@ -197,7 +204,7 @@ Start:
 
 There is a well known issue with Galaksija 2024 picture which is even more visible in graphics mode in which this expansion works.
 
-This issue is manifested in text mode as ghost pixels for characters wider then 6 pixels. For example, two asterisk characters placed side by side are displayed as joined in the middle, even there should be one pixel wide gap between them. In graphics mode this is much more obvious, and seen as, at every eight horizontal pixels, first column displayed twice and eighth column not displayed at all.
+This issue is manifested in text mode as ghost pixels for characters wider then six pixels. For example, two asterisk characters placed side by side are displayed as joined in the middle, even there should be one pixel wide gap between them. In graphics mode this is much more obvious, and seen as, at every eight horizontal pixels, first column displayed twice and eighth column not displayed at all.
 
 Fortunately, solution is simple, by soldering small ceramic capacitor with capacitance of 470 pF between pin 9 and ground (pin 7) of chip 74HCT74 (U18) on Galaksija 2024 main PCB. It is easiest to solder it underneath of the 74HCT74 on the other side of the board. If you wish, you can first try smaller capacitor values if it fixes the problem, for example, 330 or 390 pF, because required value may slightly vary with manufacturer and family of ICs used on each single instance of Galaksija.
 

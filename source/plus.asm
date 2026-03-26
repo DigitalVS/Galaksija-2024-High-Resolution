@@ -197,7 +197,7 @@ PLOT_CMD:
         POP  AF
         PUSH AF              ; refresh Z flag
         PUSH BC              ; pass coordinates to PLOT/UNPLOT subroutine
-        CALL E148            ; turns the dot on/off
+        CALL PLOT_UNPLOT     ; turns the dot on/off
 E0D2:
         POP  AF
         POP  DE
@@ -293,10 +293,11 @@ DRAW_CMD:
 .E140:
         EX   (SP), HL
         EXX
-        CALL E148
+        CALL PLOT_UNPLOT
         EX   AF, AF'
         JR   .E124
-E148:
+
+PLOT_UNPLOT:
         POP  HL              ; HL=return address, stack=YX coordinates
         EX   (SP), HL        ; HL=YX, stack=return address
         PUSH HL              ; stack=YX, return address
@@ -783,10 +784,10 @@ E388:
 ; Interrupt routine called from ROM A to generate high resolution image
 HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beginning of the routine at 0x38
         ; Check for the incoming serial data. This is the side job for this routine.
-        LD	 HL, RXFLAG      ; 10
-        LD	 A, (0x203A)     ; 13 RX signal is here in bit 0
-        AND	 (HL)            ; 7
-        LD	 (HL), A         ; 7  clr bit 0 if serial signal was present
+        LD   HL, RXFLAG      ; 10
+        LD   A, (0x203A)     ; 13 RX signal is here in bit 0
+        AND  (HL)            ; 7
+        LD   (HL), A         ; 7 clr bit 0 if serial signal is present
         ; High resolution driver starts here
         EXX                  ; 4 Alternate registers
         PUSH BC              ; 11
@@ -845,7 +846,7 @@ HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beg
         LD  B, A
         EXX                  ; Alternate registers
         XOR  A               ; A = 0, Cf = 0
-        RRC  D               ; Cf is set every 8 lines or 256 bytes, when I register value should be increased by one
+        RRC  D               ; Cf is set every 8 lines or 256 bytes, when I register value should be incremented
         EXX                  ; Main registers
         ADC  A, C            ; A = C + Cf
         LD   C, A            ; C = next I register value
