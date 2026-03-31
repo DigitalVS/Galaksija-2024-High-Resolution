@@ -13,7 +13,7 @@ def main():
         print(f"Error: The file '{args.filename}' is not a .pbm file.")
         return
 
-    file_data, width = convert_file(args.filename, args.padding)
+    file_data, _ = convert_file(args.filename, args.padding)
 
     if file_data is None:
         return # Error message is already printed
