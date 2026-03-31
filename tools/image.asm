@@ -2,8 +2,6 @@
 
 ; High resolution subroutines
 InitGraphics = $E055
-Plot         = $E161
-DrawLine     = $E104
 
 IMAGE_LENGTH = 6656
 
@@ -17,12 +15,12 @@ Start:
     LD   (TEXTHORPOS), A
     CALL InitGraphics     ; Initialize graphics mode if not already initialized
 
+    ; Copy 6.656 bytes from Image to RAMTOP+32
     LD   HL, (RAMTOP)
     LD   BC, 32
     ADD  HL, BC
     LD   DE, HL           ; Destination address
-    ; Copy 6.656 bytes from Data to RAMTOP+32
-    LD   HL, Data         ; Source address
+    LD   HL, Image         ; Source address
     LD   BC, IMAGE_LENGTH ; Length
     LDIR                  ; Copy image to video memory
 
@@ -32,5 +30,5 @@ KeyWait:
     JR   NZ, KeyWait
     RET
 
-Data:
+Image:
     ds IMAGE_LENGTH, 0    ; Empty image space
