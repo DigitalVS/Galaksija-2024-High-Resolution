@@ -1,6 +1,6 @@
 # Galaksija 2024 High Resolution
 
-This is a high resolution expansion project for [Galaksija](https://en.wikipedia.org/wiki/Galaksija_(computer)) 2024 retro computer, which is in its original form limited to character screen display. It is a hardware and software expansion of the Galaksija 2024 computer to achieve graphics resolution of 256 x 208 pixels. Software part of the project is mostly port of Galaksija Plus ROM C to newer Galaksija 2024 and it has high level of compatibility with Galaksija Plus.
+This is the high resolution expansion project for [Galaksija](https://en.wikipedia.org/wiki/Galaksija_(computer)) 2024 retro computer, which is in its original form limited to character screen display. It is a hardware and software expansion of the Galaksija 2024 computer to achieve graphics resolution of 256 x 208 pixels. Software part of the project is mostly port of Galaksija Plus ROM C to newer Galaksija 2024 and it has high level of compatibility with Galaksija Plus.
 
 This document covers the following subjects:
 
@@ -107,7 +107,7 @@ This is unofficial command which de-initializes high resolution mode and all oth
 
 <h2 id="creating-graphics">Creating High Resolution Graphics</h2>
 
-Here will be briefly described how to use [GIMP](https://www.gimp.org/) with a couple of tools from this repository to create high resolution graphics. Instead of GIMP you may use other software of your choice, for example Adobe Photoshop.
+Here will be briefly described how to use [GIMP](https://www.gimp.org/) together with a couple of tools from this repository to create high resolution graphics. Instead of GIMP you may use other software of your choice, for example Adobe Photoshop.
 
 Firstly, use GIMP to create black and white image file. Then use helper programs from *tools* directory to convert this image file to format usable on Galaksija.
 
@@ -133,7 +133,7 @@ Step-by-step instructions:
   - In the PBM export dialog, select Raw PBM (not ASCII) to ensure it is raw binary data
   - Click Export
 
-Next two images show source greyscale image example on the left, and a resulting black and white image on the right. Conversion to black and white image of such small resolution (256 x 208) leads to obvious loss of quality but this is used here just as a working example. In a real world use case, you will not convert photography pictures to Galaksija graphics, and even if you do, you will use various filters and other GIMP tools to achieve better results. Note also that Galaksija's picture on LCD monitors is stretched out, especially in horizontal direction, and that that further distorts the picture.
+Next two images show source greyscale image example on the left, and a resulting black and white image on the right. Conversion to black and white image of such small resolution (256 x 208) leads to obvious loss of quality but this is used here just as a working example. In a real world use case, you will not convert photography pictures to Galaksija graphics, and even if you do, you will use various filters and other GIMP tools to achieve better results. Note also that Galaksija's picture on wide LCD monitors is stretched out, especially in horizontal direction, and that that further distorts the picture.
 
 <img src="./images/example256x208.png" width="256">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="./images/example256x208_pbm.png" width="256">
 
@@ -143,7 +143,7 @@ Next Python tools are available to convert portable bitmap file to format usable
 
 - __pbm2bin__ converts portable bitmap file to binary file type. Basically, it just removes headers from portable bitmap file, reverse bit order of each byte and saves it to binary file of the same name. That kind of data can be further used in Galaksija programs. The picture has to be 256 pixels wide and, optionally, this tool can fill it on the bottom side to full 208 lines if needed. To see full command syntax, type `python pbm2bin.py -h` line in the command prompt window.
 
-- __pbm2gtp__ converts portable bitmap file to GTP file type. Resulting GTP file is a self contained program with embedded picture inside of it. When executed on Galaksija, it displays the picture and waits for *space* key press to exit the program. Note that this program uses *pbm2bin* tool and *image.gtp* binary file. Thus, both of these files have to be in the same directory as *pbm2gtp*. This tool has only one parameter - the name of portable bitmap file to be converted.
+- __pbm2gtp__ converts portable bitmap file to GTP file type. Resulting GTP file is a self contained program with embedded picture inside of it. When executed on Galaksija, it displays the picture and waits for *space* key press to exit the program. Note that this program uses *pbm2bin* tool and *image.gtp* binary file. Thus, both of these files have to be present in the same directory as *pbm2gtp*. This tool has only one parameter - the name of portable bitmap file to be converted.
 
 Both tools are Python 3 programs and use only modules already installed with Python.
 For completeness, assembly source code for *image.gtp* is also published here.
