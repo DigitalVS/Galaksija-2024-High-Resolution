@@ -12,10 +12,14 @@ def main():
         print(f"Error: The file '{args.filename}' is not a .pbm file.")
         return
 
-    file_data = convert_file(args.filename, True)
-
+    file_data, width = convert_file(args.filename, True)
+    
     if file_data is None:
         return # Error message is already printed
+        
+    if width != 256:
+        print(f"Image have to be 256 pixels wide ({width})")
+        return None
 
     try:
         # Read GTP file and replace image data with new contents
