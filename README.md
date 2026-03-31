@@ -1,10 +1,15 @@
 # Galaksija 2024 High Resolution
 
-This is the high resolution expansion project for [Galaksija](https://en.wikipedia.org/wiki/Galaksija_(computer)) 2024 retro computer, which is in its original form limited to character screen display. It is a hardware and software expansion of the Galaksija 2024 computer to achieve graphics resolution of 256 x 208 pixels. Software part of the project is mostly port of Galaksija Plus ROM C to newer Galaksija 2024 and it has high level of compatibility with Galaksija Plus.
+This is a high resolution expansion project for [Galaksija](https://en.wikipedia.org/wiki/Galaksija_(computer)) 2024 retro computer, which is in its original form limited to character screen display. It is a hardware and software expansion of the Galaksija 2024 computer to achieve graphics resolution of 256 x 208 pixels. Software part of the project is mostly port of Galaksija Plus ROM C to newer Galaksija 2024 and it has high level of compatibility with Galaksija Plus.
 
-This documentation is still __work in progress__!
+This document covers the following subjects:
 
-## Hardware Description
+- [Hardware description and PCB installation](#hardware)
+- [Screen editor and new BASIC commands](#software)
+- [Creating high resolution graphics](#creating-graphics)
+- [Software development tips](#dev-tips)
+
+<h2 id="hardware">Hardware Description</h2>
 
 Hardware of the High Resolution expansion is extremely simple. It consists of only one flip-flop which switches from character based mode to graphics mode and vice versa. This flip-flop extends Galaksija's, so called, *latch* circuit from six to seven bits and is handled exclusively by Galaksija's graphics raster generation service routine.
 
@@ -12,7 +17,7 @@ Hardware of the High Resolution expansion is extremely simple. It consists of on
 
 Output of the flip-flop is connected to the character's generator A12 line. This means that high resolution image goes through character generator EPROM, which is bit unusual, but is possible because this EPROM chip has greater then needed capacity and all eight data bus lines are connected to EPROM address lines. Each of the 256 possible data bus values addresses single EPROM cell where that same value has been stored. Thus, character generator is used to transfer any data bus value to the shift register connected to its output data lines.
 
-Case that high resolution image data goes through character generator means that character generator chip has to be replaced or reprogrammed before using new high resolution capabilities. Note that if reprogrammed, chip does not need to be erased before reprogramming - new contents can be reprogrammed with old contents left in the chip, because new contents is added while old is unchanged and will not be altered.
+Since the high resolution image data goes through character generator, that means that character generator chip has to be replaced or reprogrammed before using new high resolution capabilities. Note that if reprogrammed, chip does not need to be erased before reprogramming - new contents can be reprogrammed with old contents left in the chip, because new contents is added while old is unchanged and will not be altered.
 
 Folder *hardware* contains Gerber files, schematics, BOM list and character generator binary file needed for making high resolution expansion.
 
@@ -20,13 +25,13 @@ Folder *hardware* contains Gerber files, schematics, BOM list and character gene
 
 The flip-flop is soldered to small PCB which plugs into the character generator socket (U4 on the Galaksija 2024 schematics) and character generator chip is then plugged to this PCB. Additionally, one of necessary signals, not available at character generator socket, has to be brought to the marked solder pad by short wire. This signal is CLK signal from neighboring 74HCT174 chip (U6, pin number 9).
 
-The following picture shows pins that need to be connected marked with red squares. It is easiest to connect wire to 74HCT174 pin 9 by soldering it on bottom side of the PCB.
+The following picture shows points that need to be connected marked with red squares. It is easiest to connect wire to 74HCT174 pin 9 by soldering it on bottom side of the PCB.
 
 <img src="./images/Connecting_CLK_Signal.jpg" width="480" alt="Pins to connect">
 
 ROM chip, usually labeled as *BASIC*, has to be changed or reprogrammed with new software as well.
 
-## New ROM Software
+<h2 id="software">New ROM Software</h2>
 
 Software consists of screen editor and eighteen BASIC commands. Syntax of the commands is the same as on Galaksija Plus. Screen editor itself and a number of new commands are not related to high resolution functionality, and work in text mode as well. This makes this project more general then just adding high resolution features and it can be also called the __Galaksija 2024 Plus__ project though.
 
@@ -100,7 +105,50 @@ Command `DESTROY n,m` will clear the memory from address *n* to address *m*, set
 
 This is unofficial command which de-initializes high resolution mode and all other Plus features and puts Galaksija in its main text mode of operation. Basically its effect is the same as a computer reset, except that RAM contents is preserved.
 
-## High Resolution Software Development Tips
+<h2 id="creating-graphics">Creating High Resolution Graphics</h2>
+
+Here will be briefly described how to use [GIMP](https://www.gimp.org/) with a couple of tools from this repository to create high resolution graphics. Instead of GIMP you may use other software of your choice, for example Adobe Photoshop.
+
+Firstly, use GIMP to create black and white image file. Then use helper programs from *tools* directory to convert this image file to format usable on Galaksija.
+
+### Creating Black and White Image File
+
+High resolution graphics has to be black and white, 1-bit per pixel data format image. This format is supported by Portable BitMap (PBM) file type.
+
+To save a 1-bit black and white raw image (1-bit per pixel, no header, raw binary data) in GIMP, you must convert the image to an indexed black and white mode and then export it using the PBM format, which supports raw binary output.
+
+Step-by-step instructions:
+
+- Prepare the image: Open your image in GIMP
+- Convert to 1-bit (monochrome):
+  - Go to Image > Mode > Indexed...
+  - Select Use black and white (1-bit) palette
+  - Choose color dithering of your choice
+  - Click Convert
+- Export as raw PBM:
+  - Go to File > Export As...
+  - Name your file with a .pbm extension (e.g., image.pbm)
+  - Click Export
+- Configure PBM settings:
+  - In the PBM export dialog, select Raw PBM (not ASCII) to ensure it is raw binary data
+  - Click Export
+
+Next two images show source greyscale image example on the left, and a resulting black and white image on the right. Conversion to black and white image of such small resolution (256 x 208) leads to obvious loss of quality but this is used here just as a working example. In a real world use case, you will not convert photography pictures to Galaksija graphics, and even if you do, you will use various filters and other GIMP tools to achieve better results. Note also that Galaksija's picture on LCD monitors is stretched out, especially in horizontal direction, and that that further distorts the picture.
+
+<img src="./images/example256x208.png" width="256">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="./images/example256x208_pbm.png" width="256">
+
+### Converting PBM File to Galaksija Graphics
+
+Next Python tools are available to convert portable bitmap file to format usable on Galaksija:
+
+- __pbm2bin__ converts portable bitmap file to binary file type. Basically, it just removes headers from portable bitmap file, reverse bit order of each byte and saves it to binary file of the same name. That kind of data can be further used in Galaksija programs. The picture has to be 256 pixels wide and, optionally, this tool can fill it on the bottom side to full 208 lines if needed. To see full command syntax, type `python pbm2bin.py -h` line in the command prompt window.
+
+- __pbm2gtp__ converts portable bitmap file to GTP file type. Resulting GTP file is a self contained program with embedded picture inside of it. When executed on Galaksija, it displays the picture and waits for *space* key press to exit the program. Note that this program uses *pbm2bin* tool and *image.gtp* binary file. Thus, both of these files have to be in the same directory as *pbm2gtp*. This tool has only one parameter - the name of portable bitmap file to be converted.
+
+Both tools are Python 3 programs and use only modules already installed with Python.
+For completeness, assembly source code for *image.gtp* is also published here.
+
+<h2 id="dev-tips">High Resolution Software Development Tips</h2>
 
 BASIC commands described in previous text are easy to use but, due to Galaksija's inherent slowness, more complex programs are only possible to make in a machine language. Thus, here will be listed few tips about assembly program development. This is not meant to be comprehensive tutorial, nor the only correct way to do certain things, it is meant to be just a brief help to kick-off with writing first Galaksija high resolution programs.
 
