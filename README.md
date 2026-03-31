@@ -6,7 +6,7 @@ This document covers the following subjects:
 
 - [Hardware description and PCB installation](#hardware)
 - [Screen editor and new BASIC commands](#software)
-- [Creating high resolution graphics](#creating-graphics)
+- [Creating high resolution graphics on a PC](#creating-graphics)
 - [Software development tips](#dev-tips)
 
 <h2 id="hardware">Hardware Description</h2>
@@ -105,7 +105,7 @@ Command `DESTROY n,m` will clear the memory from address *n* to address *m*, set
 
 This is unofficial command which de-initializes high resolution mode and all other Plus features and puts Galaksija in its main text mode of operation. Basically its effect is the same as a computer reset, except that RAM contents is preserved.
 
-<h2 id="creating-graphics">Creating High Resolution Graphics</h2>
+<h2 id="creating-graphics">Creating High Resolution Graphics on a PC</h2>
 
 Here will be briefly described how to use [GIMP](https://www.gimp.org/) together with a couple of tools from this repository to create high resolution graphics. Instead of GIMP you may use other software of your choice, for example Adobe Photoshop.
 
