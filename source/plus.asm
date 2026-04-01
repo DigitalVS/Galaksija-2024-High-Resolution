@@ -782,7 +782,7 @@ E388:
     RET
 
 ; Interrupt routine called from ROM A to generate high resolution image
-HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beginning of the routine at 0x38
+HighResDriver:           ; AF, BC, DE, HL are pushed on the stack in the beginning of the routine at 0x38
     ; Check for the incoming serial data. This is the side job for this routine.
     LD   HL, RXFLAG      ; 10
     LD   A, (0x203A)     ; 13 RX signal is here in bit 0
@@ -819,7 +819,7 @@ HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beg
     INC  HL              ; 6 HL = RAMTOP+31
     LD   C, (HL)         ; 7 C = image start address higher byte
     LD   HL, $203F       ; 10 Latch address
-.Lines:                      ; Line drawing main loop
+.Lines:                  ; Line drawing main loop
     LD   A, C            ; 4
     LD   (HL), $3C       ; 10 $3C = 00111100, select one of character generator black lines, turn-off graphics mode flip-flop
     JP   Z, .End         ; 10 if Zf=0 end (from DEC H', number of lines)
@@ -858,7 +858,7 @@ HighResDriver:               ; AF, BC, DE, HL are pushed on the stack in the beg
     DEC  H               ; Decrement screen line number
     EXX                  ; Main registers
     JP   (IX)
-.End:                        ; End of picture
+.End:                    ; End of picture
     POP  IX
     EXX                  ; Restore alternate registers
     POP  HL
@@ -1572,7 +1572,7 @@ AUTO_CMD:
     JR   C, .EDE7        ; ... ignore it
     JP   (HL)            ; If it is any character, return
 
-EF7F:                        ; Reinitialize ROM C
+EF7F:                    ; Reinitialize ROM C
     DI                   ; disable interrupts
     CALL $E000           ; initialize ROM-C (and set 32 ​​system variables)
     LD   HL, (RAMTOP)    ; HL=new RAMTOP
