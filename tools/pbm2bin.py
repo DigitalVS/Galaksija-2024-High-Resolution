@@ -2,7 +2,7 @@ import argparse
 import os
 import math
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 WhiteChars = {0x09, 0x0A, 0x0D} # White space characters at the end of line: TAB, LF, CR
 
 def main():
@@ -13,7 +13,7 @@ def main():
         print(f"Error: The file '{args.filename}' is not a .pbm file.")
         return
 
-    file_data, _ = convert_file(args.filename, args.padding)
+    file_data = convert_file(args.filename, args.padding)
 
     if file_data is None:
         return # Error message is already printed
@@ -46,7 +46,7 @@ def _arg_parser():
     return parser
 
 
-def convert_file(filename, padding):
+def convert_file(filename, padding, isGTP = False):
     try:
         with open(filename, 'rb') as file:
             bin_data = bytes()
@@ -55,7 +55,7 @@ def convert_file(filename, padding):
 
             if file_type != "P4":
                 print("File type is not raw Portable BitMap file type")
-                return None, None
+                return None
 
             file.read(1)  # Has to be new line byte
             line = read_line(file) # Read comment line or width and height line if there is no comment line
@@ -67,6 +67,16 @@ def convert_file(filename, padding):
             width = int(size[0])
             height = int(size[1])
 
+            if isGTP and width != 256: # If called from pbm2gtp width has to be 256
+                print(f"Image have to be 256 pixels wide ({width})")
+                return None
+            if width > 256:
+                print(f"Image cannot be more then 256 pixels wide ({width})")
+                return None
+            if height > 208:
+                print(f"Image cannot be more then 208 pixels high ({height})")
+                return None
+
             for i in range(height): # For each line
                 bin_line = file.read(width)
 
@@ -76,7 +86,7 @@ def convert_file(filename, padding):
             if padding and height < 208:
                 bin_data = extend_bottom(bin_data, height, width)
 
-            return bin_data, width
+            return bin_data
     except FileNotFoundError:
         print(f"Error: The file '{filename}' was not found.")
     except (IOError, UnicodeDecodeError):
@@ -85,7 +95,7 @@ def convert_file(filename, padding):
         print("Error: Permission denied. Cannot write to the file.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-    return None, None
+    return None
 
 def read_line(file):
     bytes_read = bytes()
@@ -104,7 +114,7 @@ def read_line(file):
 
 
 def extend_bottom(image_bytes, height, width):
-    add_length = (208 - height) * (math.ceil(width / 8))
+    add_length = (208 - height) * math.ceil(width / 8)
     return image_bytes.rjust(add_length, b'\xFF')
 
 

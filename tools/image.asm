@@ -20,15 +20,15 @@ Start:
     LD   BC, 32
     ADD  HL, BC
     LD   DE, HL           ; Destination address
-    LD   HL, Image         ; Source address
+    LD   HL, Image        ; Source address
     LD   BC, IMAGE_LENGTH ; Length
     LDIR                  ; Copy image to video memory
 
-KeyWait:
+WaitKey:
     CALL ReadKey
     CP   ' '
-    JR   NZ, KeyWait
+    JR   NZ, WaitKey
     RET
 
 Image:
-    ds IMAGE_LENGTH, 0    ; Empty image space
+    DS IMAGE_LENGTH, 0    ; Empty image space
