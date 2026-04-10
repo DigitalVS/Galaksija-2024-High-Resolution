@@ -11,11 +11,11 @@ This document covers the following subjects:
 
 <h2 id="hardware">Hardware Description</h2>
 
-Hardware of the High Resolution expansion is extremely simple. It consists of only one flip-flop which switches from character based mode to graphics mode and vice versa. This flip-flop extends Galaksija's, so called, *latch* circuit from six to seven bits and is handled exclusively by Galaksija's graphics raster generation service routine.
+Hardware of the High Resolution expansion is extremely simple. It consists of only one flip-flop, which switches from character based mode to graphics mode and vice versa. This flip-flop extends Galaksija's, so called, *latch* circuit from six to seven bits and is handled exclusively by Galaksija's graphics raster generation service routine.
 
 <img src="./images/G2024_HiRes_Bottom.jpg" width="480" alt="Bottom side of high resolution PCB">
 
-Output of the flip-flop is connected to the character's generator A12 line. This means that high resolution image goes through character generator EPROM, which is bit unusual, but is possible because this EPROM chip has greater then needed capacity and all eight data bus lines are connected to EPROM address lines. Each of the 256 possible data bus values addresses single EPROM cell where that same value has been stored. Thus, character generator is used to transfer any data bus value to the shift register connected to its output data lines.
+Output of the flip-flop is connected to the character's generator A12 line. This means that high resolution image goes through character generator EPROM, which is bit unusual, but is possible because this EPROM chip has greater than needed capacity, and all eight data bus lines are connected to EPROM address lines. Each of the 256 possible data bus values addresses single EPROM cell, where that same value has been stored. Thus, character generator is used to transfer any data bus value to the shift register connected to its output data lines.
 
 Since the high resolution image data goes through character generator, that means that character generator chip has to be replaced or reprogrammed before using new high resolution capabilities. Note that if reprogrammed, chip does not need to be erased before reprogramming - new contents can be reprogrammed with old contents left in the chip, because new contents is added while old is unchanged and will not be altered.
 
@@ -33,7 +33,7 @@ ROM chip, usually labeled as *BASIC*, has to be changed or reprogrammed with new
 
 <h2 id="software">New ROM Software</h2>
 
-Software consists of screen editor and eighteen BASIC commands. Syntax of the commands is the same as on Galaksija Plus. Screen editor itself and a number of new commands are not related to high resolution functionality, and work in text mode as well. This makes this project more general then just adding high resolution features and it can be also called the __Galaksija 2024 Plus__ project though.
+Software consists of screen editor and eighteen BASIC commands. Syntax of the commands is the same as on Galaksija Plus. Screen editor itself and a number of new commands are not related to high resolution functionality, and work in text mode as well. This makes this project more general than just adding high resolution features and it can be also called the __Galaksija 2024 Plus__ project though.
 
 Source code is published in __plus.asm__ file. This file is supposed to be assembled together with the rest of the sources for Galaksija 2024 ROM, but these other files are not published here. Only resulting binary ROM file is published in release section of this repository.
 
@@ -44,6 +44,12 @@ After the Galaksija's startup, computer is booted in its main text mode and, the
 Screen editor is the same Galaksija Plus editor with few small fixes. It works only in overwrite mode, which is unusual by modern standards, but expected considering how few keys the keyboard has (e.g. no backspace, home and control keys).
 
 Characters after the cursor are deleted with DEL key, and space for new characters is created with SHIFT + "-" key combination.
+
+### Lowercase Letters
+
+High resolution mode features its own graphics font. This is inherited from Galaksija Plus, but in comparison to Galaksija Plus font, it now supports additional lowercase letters and few other symbols which can be programmatically displayed on the screen.
+
+As part of the high resolution character generator binary file, similar [lowercase letters](https://github.com/DigitalVS/Galaksija-Resources/blob/main/README.md#lowercase-letters-and-font-editor) for text mode operation, are also distributed.
 
 ### BASIC Commands
 
@@ -77,7 +83,7 @@ This command generates sound by manipulating register values of sound generator 
 
 #### LINE
 
-`LINE n` command sets new vertical resolution value. Acceptable value is from 49 to 208. Sometimes setting lower then maximum value is useful, at least for short period of time, because it leaves more CPU cycles to application software and thus improves speed.
+`LINE n` command sets new vertical resolution value. Acceptable value is from 49 to 208. Sometimes setting lower than maximum value is useful, at least for short period of time, because it leaves more CPU cycles to application software and thus improves speed.
 
 #### FAST and SLOW
 
@@ -107,7 +113,7 @@ This is unofficial command which de-initializes high resolution mode and all oth
 
 <h2 id="creating-graphics">Creating High Resolution Graphics on a PC</h2>
 
-Here will be briefly described how to use [GIMP](https://www.gimp.org/) together with a couple of tools from this repository to create high resolution graphics. Instead of GIMP you may use other software of your choice, for example Adobe Photoshop.
+Here will be briefly described how to use [GIMP](https://www.gimp.org/), together with a couple of tools from this repository, to create high resolution graphics. Instead of GIMP you may use other software of your choice, for example Adobe Photoshop.
 
 Firstly, use GIMP to create black and white image file. Then use helper programs from *tools* directory to convert this image file to format usable on Galaksija.
 
@@ -115,7 +121,7 @@ Firstly, use GIMP to create black and white image file. Then use helper programs
 
 High resolution graphics has to be black and white, 1-bit per pixel data format image. This format is supported by Portable BitMap (PBM) file type.
 
-To save a 1-bit black and white raw image (1-bit per pixel, no header, raw binary data) in GIMP, you must convert the image to an indexed black and white mode and then export it using the PBM format, which supports raw binary output.
+To save a 1-bit black and white raw image in GIMP, you must convert the image to an indexed black and white mode and then export it using the PBM format, which supports raw binary output.
 
 Step-by-step instructions:
 
@@ -141,9 +147,9 @@ Next two images show source greyscale image example on the left, and a resulting
 
 Next Python tools are available to convert portable bitmap file to format usable on Galaksija:
 
-- __pbm2bin__ converts portable bitmap file to binary file type. Basically, it just removes headers from portable bitmap file, reverses bit order of each byte and saves that to binary file of the same name. That kind of data can be further used in Galaksija programs. Optionally, this tool can append empty lines on the bottom of the picture to full 208 lines if it has less than this. To see full command syntax, type `python pbm2bin.py -h` line in the command prompt window.
+- __pbm2bin__ converts portable bitmap file to binary file type. Basically, it removes headers from portable bitmap file, reverses bit order of each byte and saves that to binary file of the same name. That kind of data can be further used in Galaksija programs. Optionally, this tool can append empty lines on the bottom of the picture up to 208 lines if it has less than this. To see full command syntax, type `python pbm2bin.py -h` line in the command prompt window.
 
-- __pbm2gtp__ converts portable bitmap file to GTP file type. Resulting GTP file is a self contained program with embedded picture inside of it. When executed on Galaksija, it displays the picture and waits for *space* key press to exit the program. Note that this program uses *pbm2bin* tool and *image.gtp* binary file. Thus, both of these files have to be present in the same directory as *pbm2gtp*. This tool has only one parameter - the name of portable bitmap file to be converted. The picture has to be 256 pixels wide and 208 or less pixels high.
+- __pbm2gtp__ converts portable bitmap file to GTP file type. Resulting GTP file is a self contained program with embedded picture inside of it. When executed on Galaksija, it displays the picture and waits for *space* key press to exit the program. Note that this command uses *pbm2bin* tool and *image.gtp* binary file. Thus, both of these files have to be present in the same directory as *pbm2gtp*. This tool has only one parameter - the name of portable bitmap file to be converted. The picture has to be 256 pixels wide and 208 or less pixels high.
 
 Both tools are Python 3 programs and use only modules already installed with Python.
 For completeness, assembly source code for *image.gtp* is also published here.
@@ -194,7 +200,7 @@ CALL $E161    ; Plot/unplot subroutine call
 
 ### Line Drawing
 
-Passing line drawing parameters is a bit different then for plot operation. X and Y coordinates are passed in BC register pair. Draw or undraw operation is determined by state of Z flag, similarly as for plot, but this time it needs to be passed via the stack.
+Passing line drawing parameters is a bit different than for plot operation. X and Y coordinates are passed in BC register pair. Draw or undraw operation is determined by state of Z flag, similarly as for plot, but this time it needs to be passed via the stack.
 
 Draw subroutine is at address &E104. After it finishes, arithmetic stack state have to be restored.
 
@@ -252,7 +258,7 @@ Start:
 
 There is a well known issue with Galaksija 2024 picture which is even more visible in graphics mode in which this expansion works.
 
-This issue is manifested in text mode as ghost pixels for characters wider then six pixels. For example, two asterisk characters placed side by side are displayed as joined in the middle, even there should be one pixel wide gap between them. In graphics mode this is much more obvious, and seen as, at every eight horizontal pixels, first column displayed twice and eighth column not displayed at all.
+This issue is manifested in text mode as ghost pixels for characters wider than six pixels. For example, two asterisk characters placed side by side are displayed as joined in the middle, even there should be one pixel wide gap between them. In graphics mode this is much more obvious, and seen as, at every eight horizontal pixels, first column displayed twice and eighth column not displayed at all.
 
 Fortunately, solution is simple, by soldering small ceramic capacitor with capacitance of 470 pF between pin 9 and ground (pin 7) of chip 74HCT74 (U18) on Galaksija 2024 main PCB. It is easiest to solder it underneath of the 74HCT74 on the other side of the board. If you wish, you can first try smaller capacitor values if it fixes the problem, for example, 330 or 390 pF, because required value may slightly vary with manufacturer and family of ICs used on each single instance of Galaksija.
 
