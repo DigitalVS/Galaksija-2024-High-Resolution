@@ -49,7 +49,7 @@ Characters after the cursor are deleted with DEL key, and space for new characte
 
 High resolution mode features its own graphics font. This is inherited from Galaksija Plus, but in comparison to Galaksija Plus font, it now supports additional lowercase letters and few other symbols which can be programmatically displayed on the screen.
 
-As part of the high resolution character generator binary file, similar [lowercase letters](https://github.com/DigitalVS/Galaksija-Resources/blob/main/README.md#lowercase-letters-and-font-editor) for text mode operation, are also distributed.
+As part of the high resolution character generator binary file, similar [lowercase letters for text mode](https://github.com/DigitalVS/Galaksija-Resources/blob/main/README.md#lowercase-letters-and-font-editor) operation, are also distributed. New letters and symbols have the same codes for text and graphics modes of operation.
 
 ### BASIC Commands
 

@@ -465,7 +465,7 @@ VideoLink:
     JR   NZ, .E236       ; If not, jump to move cursor
     OR   $C0             ; A=new arrow code (1B...1E -> DB...DE)
     JR   .E1D6           ; Jump to arrow print
-.E236:                       ; (BUG - code 31 is 16 places to the right, because not checking !!!)
+.E236:                   ; (BUG - code 31 is 16 places to the right, because not checking !!!)
     CP   $1B             ; Move - is it code for UP?
     JR   C, .E1F0        ; If less (already done), continue to ROM-B
     JR   NZ, .E23F       ; If more, jump to the next
@@ -1007,6 +1007,8 @@ CheckGraph:
     JR   C, E54B         ; If less (93 - Ž), jump to change code to "Z"
     CP   '_'             ; Is code 95 ("_" - cursor)?
     JR   C, E545         ; If less (94 - Š), jump to change code to "S"
+    CP   $7F
+    JR   C, E558         ; IF code is in range 96-126 (lowercase letters and few other characters)
     CP   $BF             ; Is code 191 (block)?
     JR   NZ, E539        ; If not, jump
     LD   A, $5B          ; If it is 191, change it to 91 (graphic block)
@@ -1117,12 +1119,12 @@ CharDef: ; Character definition table. Zero bit value corresponds to white color
     DB   $01, $7D, $BF, $DF, $EF, $EF, $F7, $F7, $F7 ; 7
     DB   $C7, $BB, $BB, $C7, $BB, $7D, $7D, $BB, $C7 ; 8
     DB   $C7, $BB, $7D, $7D, $3B, $47, $7F, $BF, $C3 ; 9
-    DB   $FF, $E7, $E7, $FF, $FF, $FF, $E7, $E7, $FF ; DOUBLE
+    DB   $FF, $E7, $E7, $FF, $FF, $FF, $E7, $E7, $FF ; COLON
     DB   $FF, $E7, $E7, $FF, $FF, $E7, $E7, $EF, $F7 ; SEMICOLON
     DB   $BF, $DF, $EF, $F7, $FB, $F7, $EF, $DF, $BF ; LESS
     DB   $FF, $FF, $FF, $01, $FF, $01, $FF, $FF, $FF ; EQUAL
     DB   $FB, $F7, $EF, $DF, $BF, $DF, $EF, $F7, $FB ; LARGER
-    DB   $C7, $BB, $7D, $BF, $DF, $EF, $EF, $FF, $EF ; QUESTION
+    DB   $C7, $BB, $7D, $BF, $DF, $EF, $EF, $FF, $EF ; QUESTION MARK
     DB   $DF, $EF, $F7, $03, $FF, $03, $F7, $EF, $DF ; LOGO2
     DB   $C7, $BB, $7D, $7D, $7D, $01, $7D, $7D, $7D ; A
     DB   $C1, $BD, $7D, $BD, $C1, $BD, $7D, $7D, $81 ; B
@@ -1155,6 +1157,38 @@ CharDef: ; Character definition table. Zero bit value corresponds to white color
     DB   $00, $00, $10, $10, $44, $28, $10, $00, $00 ; DOWN ARROW
     DB   $00, $00, $10, $08, $64, $08, $10, $00, $00 ; LEFT ARROW
     DB   $00, $00, $10, $20, $4C, $20, $10, $00, $00 ; ARROW RIGHT
+    ; Additional codes from 96 to 126 for lowercase letters and few other characters
+    DB   $FD, $FD, $FB, $F7, $EF, $DF, $BF, $7F, $7F ; \
+    DB   $FF, $FF, $FF, $C1, $BF, $81, $BE, $BE, $81 ; a
+    DB   $FD, $FD, $FD, $C1, $BD, $7D, $7D, $BD, $C1 ; b
+    DB   $FF, $FF, $FF, $C3, $BD, $FE, $FE, $BD, $C3 ; c
+    DB   $7f, $7f, $7f, $07, $7b, $7d, $7d, $7b, $07 ; d
+    DB   $FF, $FF, $FF, $83, $7D, $01, $FD, $7D, $83 ; e
+    DB   $8f, $f7, $f7, $c3, $f7, $f7, $f7, $f7, $f7 ; f
+    DB   $FF, $FF, $83, $7D, $7D, $81, $7F, $7D, $83 ; g
+    DB   $FD, $FD, $FD, $81, $7D, $7D, $7D, $7D, $7D ; h
+    DB   $EF, $FF, $EF, $EF, $EF, $EF, $EF, $EF, $EF ; i
+    DB   $BF, $FF, $BF, $BF, $BF, $BF, $BF, $BD, $C3 ; j
+    DB   $FD, $FD, $BD, $DD, $ED, $F1, $ED, $DD, $BD ; k
+    DB   $EF, $EF, $EF, $EF, $EF, $EF, $EF, $EF, $EF ; l
+    DB   $FF, $FF, $FF, $81, $6D, $6D, $6D, $6D, $6D ; m
+    DB   $FF, $FF, $FF, $81, $7D, $7D, $7D, $7D, $7D ; n
+    DB   $FF, $FF, $FF, $C7, $BB, $7D, $7D, $BB, $C7 ; o
+    DB   $FF, $FF, $FF, $81, $7D, $7D, $81, $FD, $FD ; p
+    DB   $FF, $FF, $FF, $03, $7D, $7D, $03, $7F, $7F ; q
+    DB   $FF, $FF, $FF, $83, $7D, $FD, $FD, $FD, $FD ; r
+    DB   $FF, $FF, $FF, $83, $FD, $83, $7F, $7D, $83 ; s
+    DB   $F7, $F7, $C1, $F7, $F7, $F7, $F7, $B7, $CF ; t
+    DB   $FF, $FF, $FF, $7D, $7D, $7D, $7D, $BB, $C7 ; u
+    DB   $FF, $FF, $FF, $7D, $7D, $BB, $BB, $D7, $EF ; v
+    DB   $FF, $FF, $FF, $7D, $7D, $6D, $6D, $55, $BB ; w
+    DB   $FF, $FF, $FF, $7D, $BB, $C7, $C7, $BB, $7D ; x
+    DB   $FF, $FF, $7D, $7D, $7D, $3B, $47, $7D, $83 ; y
+    DB   $FF, $FF, $FF, $01, $DF, $EF, $F7, $FB, $01 ; z
+    DB   $E3, $FB, $FB, $FB, $FB, $FB, $FB, $FB, $E3 ; [
+    DB   $EF, $EF, $EF, $EF, $EF, $EF, $EF, $EF, $EF ; |
+    DB   $C7, $DF, $DF, $DF, $DF, $DF, $DF, $DF, $C7 ; ]
+    DB   $FF, $FF, $FF, $FB, $F5, $AF, $DF, $FF, $FF ; ~
 
 IntroScreen:
     DW $0C0C             ; Intro screen text
