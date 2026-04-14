@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------------------------------
 ;
 ; Galaksija 2024 Plus
-; Version 1
+; Version 2
 ;
 ; Authors of Galaksija Plus ROM C: Nenad Dunjić, Milan Tadić
 ; Author of Galaksija 2024 version: Vitomir Spasojević
@@ -82,7 +82,7 @@ ClearVars:
 NewLinks:
     JP   CmdLink         ; New BASIC command link
     JP   VideoLink       ; New video link
-    DB   1               ; ROM version
+    DB   2               ; ROM version
 
 GRAPH_CMD:
     POP  AF              ; GRAPH command
@@ -1157,7 +1157,7 @@ CharDef: ; Character definition table. Zero bit value corresponds to white color
     DB   $00, $00, $10, $10, $44, $28, $10, $00, $00 ; DOWN ARROW
     DB   $00, $00, $10, $08, $64, $08, $10, $00, $00 ; LEFT ARROW
     DB   $00, $00, $10, $20, $4C, $20, $10, $00, $00 ; ARROW RIGHT
-    ; Additional codes from 96 to 126 for lowercase letters and few other characters
+    ; Additional codes from 96 to 126 for lowercase letters and few other symbols
     DB   $FD, $FD, $FB, $F7, $EF, $DF, $BF, $7F, $7F ; \
     DB   $FF, $FF, $FF, $C1, $BF, $81, $BE, $BE, $81 ; a
     DB   $FD, $FD, $FD, $C1, $BD, $7D, $7D, $BD, $C1 ; b
@@ -1182,13 +1182,13 @@ CharDef: ; Character definition table. Zero bit value corresponds to white color
     DB   $FF, $FF, $FF, $7D, $7D, $7D, $7D, $BB, $C7 ; u
     DB   $FF, $FF, $FF, $7D, $7D, $BB, $BB, $D7, $EF ; v
     DB   $FF, $FF, $FF, $7D, $7D, $6D, $6D, $55, $BB ; w
-    DB   $FF, $FF, $FF, $7D, $BB, $C7, $C7, $BB, $7D ; x
+    DB   $FF, $FF, $7D, $BB, $D7, $EF, $D7, $BB, $7D ; x
     DB   $FF, $FF, $7D, $7D, $7D, $3B, $47, $7D, $83 ; y
     DB   $FF, $FF, $FF, $01, $DF, $EF, $F7, $FB, $01 ; z
     DB   $E3, $FB, $FB, $FB, $FB, $FB, $FB, $FB, $E3 ; [
     DB   $EF, $EF, $EF, $EF, $EF, $EF, $EF, $EF, $EF ; |
     DB   $C7, $DF, $DF, $DF, $DF, $DF, $DF, $DF, $C7 ; ]
-    DB   $FF, $FF, $FF, $FB, $F5, $AF, $DF, $FF, $FF ; ~
+    DB   $FF, $FF, $FF, $FF, $F3, $6D, $9F, $FF, $FF ; ~
 
 IntroScreen:
     DW $0C0C             ; Intro screen text
