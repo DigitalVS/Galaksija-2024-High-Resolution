@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------------------------------
 ;
 ; Galaksija 2024 Plus
-; Version 2
+; Version 3
 ;
 ; Authors of Galaksija Plus ROM C: Nenad Dunjić, Milan Tadić
 ; Author of Galaksija 2024 version: Vitomir Spasojević
@@ -27,8 +27,8 @@
 ; 26 Value necessary for the graphics driver to work
 ; 27 Value necessary for the graphics driver to work
 ; 28 Number of screen lines visible (default 208)
-; 29 Not used, reserved for future use
-; 30 Value necessary for the graphics driver to work
+; 29 Value necessary for the graphics driver to work
+; 30 Graphics memory start address lower byte
 ; 31 Graphics memory start address higher byte
 ;-------------------------------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ ClearVars:
 NewLinks:
     JP   CmdLink         ; New BASIC command link
     JP   VideoLink       ; New video link
-    DB   2               ; ROM version
+    DB   3               ; ROM version
 
 GRAPH_CMD:
     POP  AF              ; GRAPH command
@@ -103,7 +103,7 @@ GRAPH_CMD:
     INC  A
     RET  Z               ; if A=255 - graphics memory reserved, return
     LD   HL, (RAMTOP)    ; if not, HL=RAMTOP
-    LD   DE, $1A00       ; DE=size of 256x208 image in bytes
+    LD   DE, $1A00       ; DE=size of 256x208 image in bytes ($1A00 = 6.656)
     SBC  HL, DE          ; HL=new RAMTOP
     LD   DE, (BASICEND)  ; DE=end of basic program address
     RST  $10             ; is there sufficient free space?
@@ -129,7 +129,7 @@ GRAPH_CMD:
     AND  $7F             ; If L register bit 7 is 0, reset A register bit 7 (which may be $FF after decrementing)
 .Done:
     LD   E, A
-    LD   A, 224          ; A = 32 bytes per row, for 7 rows = 224
+    LD   A, $E0          ; A = 32 bytes per row, for 7 rows = 224
     LD   C, 1
     LD   B, $88          ; After every four rows R register bit 7 value has to be adjusted (every 128 bytes), thus every fourth bit is 1 here
 .E091:
@@ -139,14 +139,16 @@ GRAPH_CMD:
     RRC  B
     RLC  C               ; C = 2,4,8,16...
     JR   .E091
+    LD   A, L
 .E09C:
     POP  HL              ; HL=RAMTOP+32 from stack
     LD   D, H
     DEC  HL              ; HL=RAMTOP+31
     LD   (HL), D         ; Image start address higher byte
     DEC  HL              ; HL=RAMTOP+30
+    LD   (HL), A         ; Image start address lower byte
+    DEC  HL              ; HL=RAMTOP+29
     LD   (HL), E         ; R register start value
-    DEC  HL              ; HL=RAMTOP+29 Not used
     DEC  HL              ; HL=RAMTOP+28
     LD   (HL), 208       ; Initial number of screen lines visible
     DEC  HL              ; HL=RAMTOP+27
@@ -794,30 +796,28 @@ HighResDriver:           ; AF, BC, DE, HL are pushed on the stack in the beginni
     PUSH DE              ; 11
     PUSH HL              ; 11
     LD   B, $20          ; 7 B'=line length
-    LD   HL, (RAMTOP)    ; 16 HL'=RAMTOP
+    LD   HL, (RAMTOP)    ; 16 HL'= RAMTOP
     LD   DE, $001A       ; 10 DE'=26
-    ADD  HL, DE          ; 11 HL'=RAMTOP+26
+    ADD  HL, DE          ; 11 HL'= RAMTOP+26
     LD   D, (HL)         ; 7 D' = (RAMTOP+26)
-    INC  HL              ; 6 HL'=RAMTOP+27
+    INC  HL              ; 6 HL'= RAMTOP+27
     LD   E, (HL)         ; 7 E' = (RAMTOP+27)
-    INC  HL              ; 6 HL'=RAMTOP+28
+    INC  HL              ; 6 HL'= RAMTOP+28
     PUSH HL              ; 11 HL' onto stack
-    LD   H, (HL)         ; 7 H'=number of visible image lines
+    LD   H, (HL)         ; 7 H' = number of visible image lines
     EXX                  ; 4 Main registers
-    POP  HL              ; 10 HL=RAMTOP+28 from stack
+    POP  HL              ; 10 HL = RAMTOP+28 from stack
     PUSH IX              ; 15 saves IX
-    LD   IX, .Lines      ; 14 IX=main loop address
-    INC  HL              ; 6 HL=RAMTOP+29 Not used
-    INC  HL              ; 6 HL=RAMTOP+30
-    NOP
-    NOP
-    NOP
-    NOP
-    LD   B, (HL)         ; 7 B = (RAMTOP+30) for R register value
-    LD   A, B
-    LD   E, A
+    LD   IX, .Lines      ; 14 IX = main loop address
+    INC  HL              ; 6 HL = RAMTOP+29
+    LD   B, (HL)         ; B = (RAMTOP+29) for R register start value
+    INC  HL              ; 6 HL = RAMTOP+30
+    LD   E, (HL)         ; 7 E = image start address lower byte
     INC  HL              ; 6 HL = RAMTOP+31
     LD   C, (HL)         ; 7 C = image start address higher byte
+    LD   A, I            ; 9 Here only to spend time
+    NOP
+    NOP
     LD   HL, $203F       ; 10 Latch address
 .Lines:                  ; Line drawing main loop
     LD   A, C            ; 4
@@ -836,12 +836,13 @@ HighResDriver:           ; AF, BC, DE, HL are pushed on the stack in the beginni
     ADD  A, B            ; A = A + $20
     EXX                  ; Main registers
     LD   E, A
+    DEC  A               ; Offset is -1, because one M1 cycle passes before first byte of each line is addressed by R register
     LD   B, A
     EXX                  ; Alternate registers
     XOR A
     RLC E
     EXX                  ; Main registers
-    RRA                  ; A = 0 or $80, this will be R register bit 7 next value
+    RRA                  ; A = 0 or $80 depending on Cf value, this will be R register bit 7 next value
     ADD A, B
     LD  B, A
     EXX                  ; Alternate registers
@@ -850,7 +851,6 @@ HighResDriver:           ; AF, BC, DE, HL are pushed on the stack in the beginni
     EXX                  ; Main registers
     ADC  A, C            ; A = C + Cf
     LD   C, A            ; C = next I register value
-    NOP
     NOP
     NOP
     NOP
