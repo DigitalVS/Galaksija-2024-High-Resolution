@@ -162,6 +162,8 @@ BASIC commands described in previous text are easy to use but, due to Galaksija'
 
 As already mentioned, initialization is done with command `A=USR(&E000)`. Leave this step to the user. It has to be done once and only once, after every computer startup or reset. If needed, put in documentation for your application that user have to do this prior to starting the program. Otherwise, if this step is executed multiple times (manually and/or programmatically), you will experience loosing the RAM memory, because RAMTOP will be lowered multiple times, too.
 
+If you really have to do all steps of switching to graphic mode programmatically (for example, if your application has to work in both text and graphic mode, like the Tetris game), then set the RAMTOP to its usual text mode value before calling &E000. That will cancel effects of the previous RAMTOP lowering and, hence, prevent loosing the RAM.
+
 ### Switching to Graphics Mode
 
 This is the first step that should be done programmatically. Graphic mode is determined by contents of *horizontal text position* variable at address &2BA8. Store in this location value &FF for graphics mode or value &16 for text mode of operation.
@@ -189,26 +191,26 @@ RST  $20
 
 Authors of plot and line drawing ROM routines didn't pay too much attention to how that code would be used from application software. Nevertheless, it's not that difficult to use it from other programs.
 
-Put Y plot coordinate to H register and X coordinate to L register (or use BC or DE registers instead), then push HL register to the stack. Set Z flag by clearing A register for choosing Plot operation. Finally, call plot ROM subroute at address &E161, as shown by the next code example.
+Put Y plot coordinate to H register and X coordinate to L register (or use BC or DE registers instead), then push HL register to the stack. Set Z flag by clearing A register for choosing Plot operation. Finally, call plot ROM subroute at address &E163, as shown by the next code example.
 
 ```z80
 LD HL, $3264  ; Plot coordinates: Y = 50, X = 100
 PUSH HL       ; Y, X parameters are passed via stack
 XOR A         ; A = 0, Zf = 1 flag for PLOT, A <> 0, Zf = 0 for UNPLOT
-CALL $E161    ; Plot/unplot subroutine call
+CALL $E163    ; Plot/unplot subroutine call
 ```
 
 ### Line Drawing
 
 Passing line drawing parameters is a bit different than for plot operation. X and Y coordinates are passed in BC register pair. Draw or undraw operation is determined by state of Z flag, similarly as for plot, but this time it needs to be passed via the stack.
 
-Draw subroutine is at address &E104. After it finishes, arithmetic stack state have to be restored.
+Draw subroutine is at address &E106. After it finishes, arithmetic stack state have to be restored.
 
 ```z80
 LD   BC, $64C8        ; Line end coordinates: Y = 100, X = 200
 XOR  A                ; DRAW: A = 0, Zf = 1, UNDRAW: A <> 0, Zf = 0
 PUSH AF
-CALL $E104            ; Draw/undraw subroutine call
+CALL $E106            ; Draw/undraw subroutine call
 LD   IX, ARITHMACC    ; Restore FP stack pointer changed in DRAW subroutine
 POP  AF               ; Clear the stack
 ```
@@ -228,8 +230,8 @@ ARITHMACC    = $2AAC ; FP arithmetic accumulator/stack
 
 ; High resolution subroutines
 InitGraphics = $E055
-Plot         = $E161
-DrawLine     = $E104
+Plot         = $E163
+DrawLine     = $E106
 
     ORG $3000
 
