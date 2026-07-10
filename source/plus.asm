@@ -815,7 +815,7 @@ HighResDriver:           ; AF, BC, DE, HL are pushed on the stack in the beginni
     LD   E, (HL)         ; 7 E = image start address lower byte
     INC  HL              ; 6 HL = RAMTOP+31
     LD   C, (HL)         ; 7 C = image start address higher byte
-    LD   A, I            ; 9 Here only to spend time
+    LD   A, I            ; 9 Here only to consume time
     NOP
     NOP
     LD   HL, $203F       ; 10 Latch address
@@ -1097,9 +1097,9 @@ CharDef: ; Character definition table. Zero bit value corresponds to white color
     DB   $EF, $EF, $EF, $EF, $EF, $EF, $EF, $FF, $EF ; EXCLAMATION
     DB   $93, $93, $B7, $DB, $FF, $FF, $FF, $FF, $FF ; QUOTE
     DB   $D7, $D7, $01, $D7, $D7, $D7, $01, $D7, $D7 ; HASH
-    DB   $EF, $83, $ED, $ED, $83, $6F, $6F, $83, $EF ; DOLLAR
+    DB   $EF, $83, $ED, $ED, $83, $6F, $6F, $83, $EF ; DOLLAR SIGN
     DB   $FF, $B3, $B3, $DF, $EF, $F7, $9B, $9B, $FF ; PERCENT
-    DB   $E3, $DD, $EB, $F7, $EB, $5D, $BD, $5D, $63 ; AND
+    DB   $E3, $DD, $EB, $F7, $EB, $5D, $BD, $5D, $63 ; AMPERSAND
     DB   $FE, $FC, $FA, $F6, $EF, $F6, $FA, $FC, $FE ; LOGO1
     DB   $DF, $EF, $F7, $F7, $F7, $F7, $F7, $EF, $DF ; OPEN PARENTHESIS
     DB   $F7, $EF, $DF, $DF, $DF, $DF, $DF, $EF, $F7 ; CLOSED PARENTHESIS
@@ -1107,7 +1107,7 @@ CharDef: ; Character definition table. Zero bit value corresponds to white color
     DB   $FF, $EF, $EF, $EF, $01, $EF, $EF, $EF, $FF ; PLUS
     DB   $FF, $FF, $FF, $FF, $FF, $E7, $E7, $EF, $F7 ; COMMA
     DB   $FF, $FF, $FF, $FF, $01, $FF, $FF, $FF, $FF ; MINUS
-    DB   $FF, $FF, $FF, $FF, $FF, $FF, $FF, $E7, $E7 ; POINT
+    DB   $FF, $FF, $FF, $FF, $FF, $FF, $FF, $E7, $E7 ; POINT/DOT
     DB   $7F, $7F, $BF, $DF, $EF, $F7, $FB, $FD, $FD ; /
     DB   $C7, $BB, $3D, $5D, $6D, $75, $79, $BB, $C7 ; 0
     DB   $EF, $E7, $EF, $EF, $EF, $EF, $EF, $EF, $C7 ; 1
@@ -1121,9 +1121,9 @@ CharDef: ; Character definition table. Zero bit value corresponds to white color
     DB   $C7, $BB, $7D, $7D, $3B, $47, $7F, $BF, $C3 ; 9
     DB   $FF, $E7, $E7, $FF, $FF, $FF, $E7, $E7, $FF ; COLON
     DB   $FF, $E7, $E7, $FF, $FF, $E7, $E7, $EF, $F7 ; SEMICOLON
-    DB   $BF, $DF, $EF, $F7, $FB, $F7, $EF, $DF, $BF ; LESS
+    DB   $BF, $DF, $EF, $F7, $FB, $F7, $EF, $DF, $BF ; LESS THAN
     DB   $FF, $FF, $FF, $01, $FF, $01, $FF, $FF, $FF ; EQUAL
-    DB   $FB, $F7, $EF, $DF, $BF, $DF, $EF, $F7, $FB ; LARGER
+    DB   $FB, $F7, $EF, $DF, $BF, $DF, $EF, $F7, $FB ; GREATER THAN
     DB   $C7, $BB, $7D, $BF, $DF, $EF, $EF, $FF, $EF ; QUESTION MARK
     DB   $DF, $EF, $F7, $03, $FF, $03, $F7, $EF, $DF ; LOGO2
     DB   $C7, $BB, $7D, $7D, $7D, $01, $7D, $7D, $7D ; A
